@@ -4,7 +4,7 @@ from django.core.files.base import ContentFile
 from rest_framework import serializers
 
 from users.serializers import UserSerializer
-from .models import Ingredient, Recipe, Tag, IngredientRecipe
+from .models import Ingredient, Recipe, Tag, IngredientRecipe, Favorite
 
 
 class Base64ImageField(serializers.ImageField):
@@ -115,3 +115,14 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         serializer = RecipeSerializer(instance)
         return serializer.data
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source="recipe.id")
+    name = serializers.ReadOnlyField(source="recipe.name")
+    image = serializers.ReadOnlyField(source="recipe.image.url")
+    cooking_time = serializers.ReadOnlyField(source="recipe.cooking_time")
+
+    class Meta:
+        model = Favorite
+        fields = ("id", "name", "image", "cooking_time")

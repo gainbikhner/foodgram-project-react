@@ -1,11 +1,13 @@
 from rest_framework import filters, viewsets
+from rest_framework.response import Response
 
-from .models import Ingredient, Recipe, Tag
+from .models import Ingredient, Recipe, Tag, Favorite
 from .serializers import (
     IngredientSerializer,
     RecipeSerializer,
     RecipeCreateUpdateSerializer,
     TagSerializer,
+    FavoriteSerializer,
 )
 
 
@@ -37,3 +39,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if self.action == "create" or "update":
             return RecipeCreateUpdateSerializer
         return RecipeSerializer
+
+
+class FavoriteViewSet(viewsets.ViewSet):
+    def create(self, request, id):
+        data = Favorite.objects.create(
+            user=request.user, recipe=Recipe.objects.get(id=id)
+        )
+        serializer = FavoriteSerializer(data)
+        return Response(serializer.data)
+
+    def destroy(self, request, id):
+        Favorite.objects.get(
+            user=request.user, recipe=Recipe.objects.get(id=id)
+        ).delete()
+        return Response()
