@@ -4,7 +4,14 @@ from django.core.files.base import ContentFile
 from rest_framework import serializers
 
 from users.serializers import UserSerializer
-from .models import Ingredient, Recipe, Tag, IngredientRecipe, Favorite
+from .models import (
+    Ingredient,
+    Recipe,
+    Tag,
+    IngredientRecipe,
+    Favorite,
+    ShoppingCart,
+)
 
 
 class Base64ImageField(serializers.ImageField):
@@ -46,6 +53,8 @@ class RecipeSerializer(serializers.ModelSerializer):
     ingredients = IngredientRecipeSerializer(
         many=True, source="ingredientrecipe_set"
     )
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
@@ -54,11 +63,23 @@ class RecipeSerializer(serializers.ModelSerializer):
             "tags",
             "author",
             "ingredients",
+            "is_favorited",
+            "is_in_shopping_cart",
             "name",
             "image",
             "text",
             "cooking_time",
         )
+
+    def get_is_favorited(self, obj):
+        return Favorite.objects.filter(
+            user=self.context["request"].user, recipe=obj
+        ).exists()
+
+    def get_is_in_shopping_cart(self, obj):
+        return ShoppingCart.objects.filter(
+            user=self.context["request"].user, recipe=obj
+        ).exists()
 
 
 class IngredientRecipeCreateSerializer(serializers.ModelSerializer):
@@ -113,7 +134,9 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         return recipe
 
     def to_representation(self, instance):
-        serializer = RecipeSerializer(instance)
+        serializer = RecipeSerializer(
+            instance, context={"request": self.context["request"]}
+        )
         return serializer.data
 
 
@@ -125,4 +148,15 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Favorite
+        fields = ("id", "name", "image", "cooking_time")
+
+
+class ShoppingCartSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source="recipe.id")
+    name = serializers.ReadOnlyField(source="recipe.name")
+    image = serializers.ReadOnlyField(source="recipe.image.url")
+    cooking_time = serializers.ReadOnlyField(source="recipe.cooking_time")
+
+    class Meta:
+        model = ShoppingCart
         fields = ("id", "name", "image", "cooking_time")

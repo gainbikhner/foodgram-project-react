@@ -7,6 +7,7 @@ from recipes.views import (
     RecipeViewSet,
     TagViewSet,
     FavoriteViewSet,
+    ShoppingCartViewSet
 )
 
 
@@ -21,6 +22,14 @@ urlpatterns = [
     path(
         "api/recipes/<int:id>/favorite/",
         FavoriteViewSet.as_view({"post": "create", "delete": "destroy"}),
+    ),
+    path(
+        "api/recipes/download_shopping_cart/",
+        ShoppingCartViewSet.as_view({"get": "retrieve"}),
+    ),
+    path(
+        "api/recipes/<int:id>/shopping_cart/",
+        ShoppingCartViewSet.as_view({"post": "create", "delete": "destroy"}),
     ),
     path("api/", include("djoser.urls")),
     path("api/", include(router.urls)),
