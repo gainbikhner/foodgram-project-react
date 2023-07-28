@@ -10,6 +10,7 @@ from .models import (
     ShoppingCart,
     IngredientRecipe,
 )
+from users.models import Follow, User
 from .serializers import (
     IngredientSerializer,
     RecipeSerializer,
@@ -17,6 +18,7 @@ from .serializers import (
     TagSerializer,
     FavoriteSerializer,
     ShoppingCartSerializer,
+    FollowSerializer
 )
 
 
@@ -114,5 +116,25 @@ class ShoppingCartViewSet(viewsets.ViewSet):
     def destroy(self, request, id):
         ShoppingCart.objects.get(
             user=request.user, recipe=Recipe.objects.get(id=id)
+        ).delete()
+        return Response()
+
+
+class FollowViewSet(viewsets.ViewSet):
+    def retrieve(self, request):
+        instance = Follow.objects.filter(user=request.user)
+        serializer = FollowSerializer(instance, context={"request": request}, many=True)
+        return Response(serializer.data)
+
+    def create(self, request, id):
+        data = Follow.objects.create(
+            user=request.user, author=User.objects.get(id=id)
+        )
+        serializer = FollowSerializer(data, context={"request": request})
+        return Response(serializer.data)
+
+    def destroy(self, request, id):
+        Follow.objects.get(
+            user=request.user, author=User.objects.get(id=id)
         ).delete()
         return Response()

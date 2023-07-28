@@ -17,24 +17,24 @@ class User(AbstractUser):
     last_name = models.CharField("Фамилия", max_length=150)
 
 
-# class Follow(models.Model):
-#     user = models.ForeignKey(
-#         User,
-#         on_delete=models.CASCADE,
-#         related_name="follower",
-#         verbose_name="Подписчик",
-#     )
-#     author = models.ForeignKey(
-#         User,
-#         on_delete=models.CASCADE,
-#         related_name="following",
-#         verbose_name="Автор",
-#     )
+class Follow(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="follower",
+        verbose_name="Подписчик",
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="following",
+        verbose_name="Автор",
+    )
 
-#     class Meta:
-#         ordering = ("user",)
-#         verbose_name = "Подписка"
-#         verbose_name_plural = "Подписки"
+    class Meta:
+        ordering = ("user",)
+        verbose_name = "Подписка"
+        verbose_name_plural = "Подписки"
 
-#     def __str__(self) -> str:
-#         return f"{self.user.username} follows {self.author.username}"
+    def __str__(self) -> str:
+        return f"{self.user.username} follows {self.author.username}"
