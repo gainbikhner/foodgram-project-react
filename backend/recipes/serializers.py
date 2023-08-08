@@ -73,11 +73,15 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
     def get_is_favorited(self, obj):
+        if self.context['request'].user.is_anonymous:
+            return False
         return Favorite.objects.filter(
             user=self.context["request"].user, recipe=obj
         ).exists()
 
     def get_is_in_shopping_cart(self, obj):
+        if self.context['request'].user.is_anonymous:
+            return False
         return ShoppingCart.objects.filter(
             user=self.context["request"].user, recipe=obj
         ).exists()
@@ -115,6 +119,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         ingredients_data = validated_data.pop("ingredients")
         recipe = super().create(validated_data)
         for ingredient_data in ingredients_data:
+            print(ingredient_data)
             IngredientRecipe(
                 recipe=recipe,
                 ingredient=ingredient_data["ingredient"],
@@ -123,6 +128,12 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
+        if 'ingredients' not in self.initial_data:
+            recipe = super().update(instance, validated_data)
+            return recipe
+        # if 'ingredients' not in validated_data:
+        #     instance.save()
+        #     return instance
         ingredients_data = validated_data.pop("ingredients")
         recipe = super().update(instance, validated_data)
         IngredientRecipe.objects.filter(recipe=recipe).delete()

@@ -1,6 +1,9 @@
 from rest_framework import filters, viewsets
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django.http import HttpResponse
+from django_filters.rest_framework import DjangoFilterBackend, FilterSet
+from django_filters.filters import ModelMultipleChoiceFilter, NumberFilter
 
 from .models import (
     Ingredient,
@@ -20,23 +23,60 @@ from .serializers import (
     ShoppingCartSerializer,
     FollowSerializer
 )
+from users.serializers import UserSerializer
+from .permissions import IsAuthor
 
 
-class TagViewSet(viewsets.ModelViewSet):
+class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    pagination_class = None
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
 
-class IngredientViewSet(viewsets.ModelViewSet):
+class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ["^name"]
+    pagination_class = None
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+
+class RecipeFilter(FilterSet):
+    tags = ModelMultipleChoiceFilter(field_name='tags__slug', to_field_name="slug", queryset=Tag.objects.all())
+    is_favorited = NumberFilter(method='is_favorited_filter')
+    is_in_shopping_cart = NumberFilter(method="is_in_shopping_cart_filter")
+
+    class Meta:
+        model = Recipe
+        fields = ('author', 'tags')
+
+    def is_favorited_filter(self, queryset, name, value):
+        if self.request.user.is_anonymous:
+            return queryset
+        if value == 1:
+            return queryset.filter(favorite__user=self.request.user)
+        if value == 0:
+            return queryset.exclude(favorite__user=self.request.user)
+        return queryset
+
+    def is_in_shopping_cart_filter(self, queryset, name, value):
+        if self.request.user.is_anonymous:
+            return queryset
+        if value == 1:
+            return queryset.filter(shopping_cart__user=self.request.user)
+        if value == 0:
+            return queryset.exclude(shopping_cart__user=self.request.user)
+        return queryset
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthor)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = RecipeFilter
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -57,20 +97,26 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def list(self, request):
-        queryset = Recipe.objects.all()
+        queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = RecipeSerializer(
+            serializer = self.get_serializer(
                 page, many=True, context={"request": request}
             )
             return self.get_paginated_response(serializer.data)
-        serializer = RecipeSerializer(
+        serializer = self.get_serializer(
             queryset, many=True, context={"request": request}
         )
         return Response(serializer.data)
 
 
-class FavoriteViewSet(viewsets.ViewSet):
+class FavoriteViewSet(viewsets.ModelViewSet):
+    queryset = Favorite.objects.all()
+    serializer_class = FavoriteSerializer
+
+    def get_queryset(self):
+        return Favorite.objects.filter(user=self.request.user)
+
     def create(self, request, id):
         data = Favorite.objects.create(
             user=request.user, recipe=Recipe.objects.get(id=id)
@@ -85,7 +131,13 @@ class FavoriteViewSet(viewsets.ViewSet):
         return Response()
 
 
-class ShoppingCartViewSet(viewsets.ViewSet):
+class ShoppingCartViewSet(viewsets.ModelViewSet):
+    queryset = ShoppingCart.objects.all()
+    serializer_class = ShoppingCartSerializer
+
+    def get_queryset(self):
+        return ShoppingCart.objects.filter(user=self.request.user)
+
     def retrieve(self, request):
         shopping_cart = {}
         ingredients_recipes = IngredientRecipe.objects.filter(
@@ -120,10 +172,21 @@ class ShoppingCartViewSet(viewsets.ViewSet):
         return Response()
 
 
-class FollowViewSet(viewsets.ViewSet):
-    def retrieve(self, request):
-        instance = Follow.objects.filter(user=request.user)
-        serializer = FollowSerializer(instance, context={"request": request}, many=True)
+class FollowViewSet(viewsets.ModelViewSet):
+    queryset = Follow.objects.all()
+    serializer_class = FollowSerializer
+
+    def list(self, request):
+        queryset = Follow.objects.filter(user=request.user)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = FollowSerializer(
+                page, many=True, context={"request": request}
+            )
+            return self.get_paginated_response(serializer.data)
+        serializer = FollowSerializer(
+            queryset, many=True, context={"request": request}
+        )
         return Response(serializer.data)
 
     def create(self, request, id):
@@ -138,3 +201,11 @@ class FollowViewSet(viewsets.ViewSet):
             user=request.user, author=User.objects.get(id=id)
         ).delete()
         return Response()
+
+
+class UserMeViewSet(viewsets.ViewSet):
+    """Вью-функция для работы с текущим пользователем."""
+
+    def retrieve(self, request):
+        serializer = UserSerializer(request.user, context={"request": request})
+        return Response(serializer.data)

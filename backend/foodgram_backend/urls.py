@@ -8,7 +8,8 @@ from recipes.views import (
     TagViewSet,
     FavoriteViewSet,
     ShoppingCartViewSet,
-    FollowViewSet
+    FollowViewSet,
+    UserMeViewSet
 )
 
 
@@ -34,7 +35,11 @@ urlpatterns = [
     ),
     path(
         "api/users/subscriptions/",
-        FollowViewSet.as_view({"get": "retrieve"}),
+        FollowViewSet.as_view({"get": "list"}),
+    ),
+    path(
+        "api/users/me/",
+        UserMeViewSet.as_view({"get": "retrieve"}),
     ),
     path(
         "api/users/<int:id>/subscribe/",
