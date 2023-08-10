@@ -2,14 +2,14 @@ from django.contrib import admin
 from django.urls import include, path
 from rest_framework import routers
 
-from recipes.views import (
+from api.views import (
+    FavoriteViewSet,
+    FollowViewSet,
     IngredientViewSet,
     RecipeViewSet,
-    TagViewSet,
-    FavoriteViewSet,
     ShoppingCartViewSet,
-    FollowViewSet,
-    UserMeViewSet
+    TagViewSet,
+    UserMeViewSet,
 )
 
 
