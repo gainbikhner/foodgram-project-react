@@ -27,13 +27,19 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     """Модель для ингредиентов."""
 
-    name = models.CharField("Название", max_length=200, unique=True)
+    name = models.CharField("Название", max_length=200)
     measurement_unit = models.CharField("Единицы измерения", max_length=200)
 
     class Meta:
         ordering = ("name",)
         verbose_name = "Ингредиент"
         verbose_name_plural = "Ингредиенты"
+        constraints = (
+            models.UniqueConstraint(
+                fields=("name", "measurement_unit"),
+                name="unique_ingredient",
+            ),
+        )
 
     def __str__(self):
         return self.name[:NUMBER_OF_SYMBOLS]
