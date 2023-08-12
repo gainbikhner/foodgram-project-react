@@ -2,24 +2,13 @@ import base64
 
 from django.core.files.base import ContentFile
 from djoser.serializers import UserCreateSerializer, UserSerializer
-from rest_framework.serializers import (
-    ImageField,
-    ModelSerializer,
-    PrimaryKeyRelatedField,
-    ReadOnlyField,
-    SerializerMethodField,
-    ValidationError,
-)
+from rest_framework.serializers import (ImageField, ModelSerializer,
+                                        PrimaryKeyRelatedField, ReadOnlyField,
+                                        SerializerMethodField, ValidationError)
 
-from recipes.models import (
-    Favorite,
-    Ingredient,
-    IngredientRecipe,
-    Recipe,
-    ShoppingCart,
-    Tag,
-)
-from users.models import Follow
+from ..recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
+                              ShoppingCart, Tag)
+from ..users.models import Follow
 
 
 class CustomUserSerializer(UserSerializer):

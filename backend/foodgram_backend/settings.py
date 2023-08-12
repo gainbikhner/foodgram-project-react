@@ -1,3 +1,4 @@
+# flake8: noqa
 """
 Django settings for foodgram_backend project.
 
