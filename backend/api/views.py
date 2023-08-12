@@ -4,19 +4,35 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
-from rest_framework.status import (HTTP_201_CREATED, HTTP_204_NO_CONTENT,
-                                   HTTP_400_BAD_REQUEST)
+from rest_framework.status import (
+    HTTP_201_CREATED,
+    HTTP_204_NO_CONTENT,
+    HTTP_400_BAD_REQUEST,
+)
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, ViewSet
 
-from ..recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
-                              ShoppingCart, Tag)
-from ..users.models import Follow, User
+from recipes.models import (
+    Favorite,
+    Ingredient,
+    IngredientRecipe,
+    Recipe,
+    ShoppingCart,
+    Tag,
+)
+from users.models import Follow, User
+
 from .filters import RecipeFilter
 from .permissions import IsAuthorPatchDelete
-from .serializers import (CustomUserSerializer, FavoriteSerializer,
-                          FollowSerializer, IngredientSerializer,
-                          RecipeCreateUpdateSerializer, RecipeSerializer,
-                          ShoppingCartSerializer, TagSerializer)
+from .serializers import (
+    CustomUserSerializer,
+    FavoriteSerializer,
+    FollowSerializer,
+    IngredientSerializer,
+    RecipeCreateUpdateSerializer,
+    RecipeSerializer,
+    ShoppingCartSerializer,
+    TagSerializer,
+)
 
 
 class TagViewSet(ReadOnlyModelViewSet):
