@@ -38,11 +38,12 @@ class CustomUserSerializer(UserSerializer):
         )
 
     def get_is_subscribed(self, obj):
-        if self.context["request"].user.is_anonymous:
-            return False
-        return Follow.objects.filter(
-            user=self.context["request"].user, author=obj
-        ).exists()
+        return (
+            self.context["request"].user.is_authenticated
+            and Follow.objects.filter(
+                user=self.context["request"].user, author=obj
+            ).exists()
+        )
 
 
 class UserRegistrationSerializer(UserCreateSerializer):
@@ -125,18 +126,20 @@ class RecipeSerializer(ModelSerializer):
         )
 
     def get_is_favorited(self, obj):
-        if self.context["request"].user.is_anonymous:
-            return False
-        return Favorite.objects.filter(
-            user=self.context["request"].user, recipe=obj
-        ).exists()
+        return (
+            self.context["request"].user.is_authenticated
+            and Favorite.objects.filter(
+                user=self.context["request"].user, recipe=obj
+            ).exists()
+        )
 
     def get_is_in_shopping_cart(self, obj):
-        if self.context["request"].user.is_anonymous:
-            return False
-        return ShoppingCart.objects.filter(
-            user=self.context["request"].user, recipe=obj
-        ).exists()
+        return (
+            self.context["request"].user.is_authenticated
+            and ShoppingCart.objects.filter(
+                user=self.context["request"].user, recipe=obj
+            ).exists()
+        )
 
 
 class IngredientRecipeCreateSerializer(ModelSerializer):
@@ -202,11 +205,20 @@ class RecipeCreateUpdateSerializer(ModelSerializer):
         return serializer.data
 
     def validate_ingredients(self, values):
+        if values == []:
+            raise ValidationError("Добавьте ингредиенты.")
         ingredients = []
         for value in values:
             ingredients.append(value.get("ingredient"))
         if len(ingredients) != len(set(ingredients)):
             raise ValidationError("Повторение ингредиента.")
+        return values
+
+    def validate_tags(self, values):
+        if values == []:
+            raise ValidationError("Добавьте тэги.")
+        if len(values) != len(set(values)):
+            raise ValidationError("Повторение тэга.")
         return values
 
 

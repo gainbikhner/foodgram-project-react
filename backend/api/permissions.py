@@ -1,12 +1,10 @@
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, SAFE_METHODS
 
 
-class IsAuthor(IsAuthenticatedOrReadOnly):
-    """Пользователь является автором объекта."""
+class IsAuthorPatchDelete(IsAuthenticatedOrReadOnly):
+    """Автор может править и удалять свой объект."""
 
-    message = "Доступно автору."
+    message = "Доступно только автору."
 
     def has_object_permission(self, request, view, obj):
-        if request.method == "PATCH" or "DELETE":
-            return request.user == obj.author
-        return True
+        return request.method in SAFE_METHODS or request.user == obj.author
