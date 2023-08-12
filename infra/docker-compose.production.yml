@@ -16,7 +16,9 @@ services:
       - static:/backend_static/
       - media:/app/media
   frontend:
-    image: gainbikhner/foodgram_frontend
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
     volumes:
       - static:/app/build/
   nginx:
