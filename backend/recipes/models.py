@@ -2,6 +2,7 @@ from colorfield.fields import ColorField
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.core.exceptions import ValidationError
 
 User = get_user_model()
 
@@ -9,7 +10,7 @@ NUMBER_OF_SYMBOLS = 15
 
 
 class Tag(models.Model):
-    """Модель для тэгов."""
+    """Модель для тегов."""
 
     name = models.CharField("Название", max_length=200, unique=True)
     color = ColorField("Цвет в HEX", unique=True)
@@ -22,6 +23,13 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name[:NUMBER_OF_SYMBOLS]
+
+    def clean(self):
+        if self.color != self.color.upper():
+            raise ValidationError(
+                "Поле цвета необходимо ввести заглавными буквами."
+            )
+        return super().clean()
 
 
 class Ingredient(models.Model):
@@ -71,13 +79,18 @@ class Recipe(models.Model):
         ordering = ("-id",)
         verbose_name = "Рецепт"
         verbose_name_plural = "Рецепты"
+        constraints = (
+            models.UniqueConstraint(
+                fields=("name", "author"), name="unique_recipe"
+            ),
+        )
 
     def __str__(self):
         return self.name[:NUMBER_OF_SYMBOLS]
 
 
 class TagRecipe(models.Model):
-    """Связная модель для тэгов и рецептов."""
+    """Связная модель для тегов и рецептов."""
 
     tag = models.ForeignKey(
         Tag,
@@ -179,6 +192,7 @@ class ShoppingCart(FavoriteShoppingCart):
 
     class Meta(FavoriteShoppingCart.Meta):
         verbose_name = "Список покупок"
+        verbose_name_plural = "Списки покупок"
         constraints = (
             models.UniqueConstraint(
                 fields=("user", "recipe"), name="unique_shopping_cart"

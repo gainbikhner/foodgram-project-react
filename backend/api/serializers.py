@@ -221,6 +221,18 @@ class RecipeCreateUpdateSerializer(ModelSerializer):
             raise ValidationError("Повторение тэга.")
         return values
 
+    def validate_name(self, value):
+        if Recipe.objects.filter(name=value).filter():
+            raise ValidationError("Рецепт с таким именем уже существует.")
+        return value
+
+    def validate(self, attrs):
+        if self.initial_data.get("ingredients") == []:
+            raise ValidationError("Добавьте ингредиенты.")
+        if self.initial_data.get("tags") == []:
+            raise ValidationError("Добавьте теги.")
+        return attrs
+
 
 class FollowRecipeSerializer(ModelSerializer):
     """Родительский сереализатор для подписок."""
