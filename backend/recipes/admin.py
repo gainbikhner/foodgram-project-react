@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.core.exceptions import ValidationError
+from django.forms import BaseInlineFormSet
 
 
 from .models import (
@@ -12,18 +14,34 @@ from .models import (
 )
 
 
+class RecipeInlineFormSet(BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+        form_count = 0
+        delete_count = 0
+        for form in self.forms:
+            form_count += 1
+            if not hasattr(form, "cleaned_data"):
+                continue
+            data = form.cleaned_data
+            if data.get("DELETE"):
+                delete_count += 1
+        if form_count == delete_count:
+            raise ValidationError("Необходим минимум один объект.")
+
+
 class TagRecipeInline(admin.TabularInline):
     model = TagRecipe
     min_num = 1
     extra = 0
-    can_delete = False
+    formset = RecipeInlineFormSet
 
 
 class IngredientRecipeInline(admin.TabularInline):
     model = IngredientRecipe
     min_num = 1
     extra = 0
-    can_delete = False
+    formset = RecipeInlineFormSet
 
 
 class RecipeAdmin(admin.ModelAdmin):
