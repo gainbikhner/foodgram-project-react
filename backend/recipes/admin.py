@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+
 from .models import (
     Favorite,
     Ingredient,
@@ -15,12 +16,14 @@ class TagRecipeInline(admin.TabularInline):
     model = TagRecipe
     min_num = 1
     extra = 0
+    can_delete = False
 
 
 class IngredientRecipeInline(admin.TabularInline):
     model = IngredientRecipe
     min_num = 1
     extra = 0
+    can_delete = False
 
 
 class RecipeAdmin(admin.ModelAdmin):
