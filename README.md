@@ -19,7 +19,7 @@
 ## Установка
 1. Склонируйте репозиторий.
 ```
-git clone git@github.com:kegone/foodgram-project-react.git
+git clone git@github.com:gainbikhner/foodgram-project-react.git
 ```
 <br>
 
