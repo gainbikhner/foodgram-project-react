@@ -1,8 +1,8 @@
-# praktikum_new_diplom
+# Foodgram
 Сервис для публикации рецептов.
 
-Адрес сервера: newfoodgram.ddns.net
-Почта для входа в админку: alex@gmail.com
+Адрес сервера: https://newfoodgram.ddns.net/  
+Почта для входа в админку: alex@gmail.com  
 Пароль: Admin12345
 
 ## Автор
@@ -37,8 +37,7 @@ docker compose exec infra-backend-1 cp -r collected_static/. ../backend_static/s
 ```
 <br>
 
-Сервис доступен по 80 порту.
-https://localhost/
+Сервис доступен по 80 порту https://localhost/
 
 ## Примеры API
 Регистрация пользователя
